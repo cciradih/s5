@@ -1,5 +1,8 @@
 package org.eu.cciradih.socks5;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Inet4Address;
@@ -9,6 +12,8 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 
 public class Start implements Runnable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Start.class);
+
     private final Socket client;
     private String address;
     private int port;
@@ -53,15 +58,13 @@ public class Start implements Runnable {
             this.port = ByteBuffer.wrap(new byte[]{buffer[read - 2], buffer[read - 1]}).asCharBuffer().get();
             Socket server = new Socket();
             server.setKeepAlive(true);
-            server.setSoTimeout(30 * 1000);
             server.connect(new InetSocketAddress(this.address, this.port), 2 * 1000);
             Thread.startVirtualThread(new End(this.client, server));
             Thread.startVirtualThread(new End(server, this.client));
         } catch (Exception e) {
             String clientAddress = this.client.getInetAddress().getHostAddress();
             int clientPort = this.client.getPort();
-            System.out.println("End error: " + clientAddress + ":" + clientPort + " -> " + this.address + ":" +
-                    this.port + " - " + e.getMessage());
+            LOGGER.error("{}:{} -> {}:{} - {}", clientAddress, clientPort, this.address, this.port, e.getMessage());
         }
     }
 }
