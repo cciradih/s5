@@ -1,0 +1,12 @@
+{
+  "proxyClient": {
+    "address": "0.0.0.0",
+    "port": 25700,
+    "timeout": 5000
+  },
+  "proxyServer": {
+    "address": "0.0.0.0",
+    "port": 25701,
+    "timeout": 5000
+  }
+}
