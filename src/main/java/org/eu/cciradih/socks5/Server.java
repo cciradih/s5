@@ -3,6 +3,7 @@ package org.eu.cciradih.socks5;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.Cipher;
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -25,15 +26,15 @@ public class Server extends Proxy implements Runnable {
                 Thread.startVirtualThread(() -> {
                     try {
                         //  step 1
-                        this.readAndWrite(proxyClient, proxyClient, new byte[]{5, 0});
-                        byte[] bytes = this.readAndWrite(proxyClient, proxyClient, new byte[]{5, 0, 0, 1, 0, 0, 0, 0, 0, 0});
+                        this.readAndWrite(proxyClient, proxyClient, Cipher.DECRYPT_MODE, new byte[]{5, 0});
+                        byte[] bytes = this.readAndWrite(proxyClient, proxyClient, Cipher.ENCRYPT_MODE, new byte[]{5, 0, 0, 1, 0, 0, 0, 0, 0, 0});
                         //  get remote server
                         String remoteServerAddress = this.getRemoteServerAddress(bytes);
                         int remoteServerPort = this.getRemoteServerPort(bytes);
                         Socket remoteServer = this.getServer(remoteServerAddress, remoteServerPort, this.configuration.proxyServer());
                         //  copy
-                        this.copy(proxyClient, remoteServer);
-                        this.copy(remoteServer, proxyClient);
+                        this.copy(proxyClient, remoteServer, Cipher.DECRYPT_MODE);
+                        this.copy(remoteServer, proxyClient, Cipher.ENCRYPT_MODE);
                     } catch (IOException e) {
                         LOGGER.error("{} - {}", proxyClient, e.getMessage());
                     }

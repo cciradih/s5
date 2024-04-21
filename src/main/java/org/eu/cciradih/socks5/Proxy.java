@@ -1,6 +1,5 @@
 package org.eu.cciradih.socks5;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,21 +39,23 @@ public class Proxy {
         return server;
     }
 
-    public void readAndWrite(Socket source, Socket target) throws IOException {
+    public void readAndWrite(Socket source, Socket target, int mode) throws IOException {
         byte[] buffer = new byte[8192];
         int read = source.getInputStream().read(buffer);
         buffer = Arrays.copyOfRange(buffer, 0, read);
+        CipherUtil.getInstance().doFinal(buffer, mode);
         target.getOutputStream().write(buffer);
     }
 
-    public byte[] readAndWrite(Socket source, Socket target, byte[] bytes) throws IOException {
+    public byte[] readAndWrite(Socket source, Socket target, int mode, byte[] bytes) throws IOException {
         byte[] buffer = new byte[8192];
         int read = source.getInputStream().read(buffer);
+        CipherUtil.getInstance().doFinal(buffer, mode);
         target.getOutputStream().write(bytes);
         return Arrays.copyOfRange(buffer, 0, read);
     }
 
-    public void copy(Socket source, Socket target) {
+    public void copy(Socket source, Socket target, int mode) {
         Thread.startVirtualThread(() -> {
             try {
                 InputStream inputStream = source.getInputStream();
@@ -62,6 +63,7 @@ public class Proxy {
                 int read;
                 byte[] buffer = new byte[8192];
                 while (-1 != (read = inputStream.read(buffer))) {
+                    CipherUtil.getInstance().doFinal(buffer, mode);
                     outputStream.write(buffer, 0, read);
                 }
             } catch (IOException e) {
