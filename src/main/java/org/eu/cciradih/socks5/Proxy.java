@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -55,7 +57,13 @@ public class Proxy {
     public void copy(Socket source, Socket target) {
         Thread.startVirtualThread(() -> {
             try {
-                IOUtils.copy(source.getInputStream(), target.getOutputStream());
+                InputStream inputStream = source.getInputStream();
+                OutputStream outputStream = target.getOutputStream();
+                int read;
+                byte[] buffer = new byte[8192];
+                while (-1 != (read = inputStream.read(buffer))) {
+                    outputStream.write(buffer, 0, read);
+                }
             } catch (IOException e) {
                 LOGGER.error("{} -> {} - {}", source, target, e.getMessage());
             } finally {

@@ -6,6 +6,10 @@ Socks 5 代理。
 
 - [x] Socks 5 协议。
 
+## 效果
+
+![](https://github.com/cciradih/s5/blob/master/example.png)
+
 ## 网络模型
 
 ![](https://github.com/cciradih/s5/blob/master/model.jpg)
