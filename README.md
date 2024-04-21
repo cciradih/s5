@@ -8,7 +8,7 @@ Socks 5 代理。
 
 ## 网络模型
 
-![](https://github.com/cciradih/s5/blob/master/model.png)
+![](https://github.com/cciradih/s5/blob/master/model.svg)
 
 ## 使用
 
