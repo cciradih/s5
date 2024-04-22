@@ -1,10 +1,11 @@
 package org.eu.cciradih.socks5;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -38,37 +39,41 @@ public class Proxy {
         return server;
     }
 
-    public void readAndWrite(Socket source, Socket target) throws IOException {
+    public byte[] read(Socket source) throws IOException {
         byte[] buffer = new byte[8192];
         int read = source.getInputStream().read(buffer);
-        buffer = Arrays.copyOfRange(buffer, 0, read);
-        target.getOutputStream().write(buffer);
-    }
-
-    public byte[] readAndWrite(Socket source, Socket target, byte[] bytes) throws IOException {
-        byte[] buffer = new byte[8192];
-        int read = source.getInputStream().read(buffer);
-        target.getOutputStream().write(bytes);
         return Arrays.copyOfRange(buffer, 0, read);
     }
 
-    public void copy(Socket source, Socket target) {
-        Thread.startVirtualThread(() -> {
-            try {
-                IOUtils.copy(source.getInputStream(), target.getOutputStream());
-            } catch (IOException e) {
-                LOGGER.error("{} -> {} - {}", source, target, e.getMessage());
-            } finally {
-                this.close(source, target);
-            }
-        });
+    public byte[] read(Socket source, int mode) throws Exception {
+        byte[] read = this.read(source);
+        return CipherUtil.getInstance().doFinal(read, mode);
     }
 
-    private void close(Socket source, Socket target) {
-        try {
-            source.close();
-            target.close();
-        } catch (IOException ignored) {
-        }
+    public void write(Socket target, byte[] buffer) throws IOException {
+        target.getOutputStream().write(buffer);
+    }
+
+    public void write(Socket target, byte[] buffer, int mode) throws Exception {
+        buffer = CipherUtil.getInstance().doFinal(buffer, mode);
+        this.write(target, buffer);
+    }
+
+    public void copy(Socket source, Socket target, int mode) {
+        Thread.startVirtualThread(() -> {
+            try {
+                InputStream inputStream = source.getInputStream();
+                OutputStream outputStream = target.getOutputStream();
+                int read;
+                byte[] buffer = new byte[8192];
+                while (-1 != (read = inputStream.read(buffer))) {
+                    buffer = Arrays.copyOfRange(buffer, 0, read);
+                    byte[] bytes = CipherUtil.getInstance().doFinal(buffer, mode);
+                    outputStream.write(bytes);
+                }
+            } catch (Exception e) {
+                LOGGER.error("{} -> {} - {}", source, target, e.getMessage());
+            }
+        });
     }
 }
