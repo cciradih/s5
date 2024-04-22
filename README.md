@@ -5,6 +5,7 @@ Socks 5 代理。
 ## 功能
 
 - [x] Socks 5 协议。
+- [x] AES-CTR 传输加密。
 
 ## 效果
 
@@ -19,21 +20,29 @@ Socks 5 代理。
 JDK 21 环境开箱即用（Out of the box），代码很简单，没有过度封装。
 
 ```shell
-java -jar socks5-1.1.0.jar
+java -jar socks5-1.1.1.jar
 ```
 
 ### Proxy 配置
+
+> [!NOTE]
+> AES 密钥和偏移量生成可以参考 `src/test/java/org/eu/cciradih/socks5/MainTests.java`。
+
 ```json
 {
   "proxyClient": {        //  代理客户端
     "address": "0.0.0.0", //  监听地址
     "port": 25700,        //  监听端口
-    "timeout": 5000       //  连接代理服务器的 soTimeout 和 connectTimeout 的超时时间（ms）
+    "timeout": 30000      //  连接代理服务器的 soTimeout 和 connectTimeout 的超时时间（ms）
   },
   "proxyServer": {        //  代理服务器
     "address": "0.0.0.0", //  监听地址
     "port": 25701,        //  监听端口
-    "timeout": 5000       //  连接远程服务器的 soTimeout 和 connectTimeout 的超时时间（ms）
+    "timeout": 30000      //  连接远程服务器的 soTimeout 和 connectTimeout 的超时时间（ms）
+  },
+  "aes": {
+    "key": "……",  //  密钥
+    "iv": "……"    //  偏移量
   }
 }
 ```
@@ -46,7 +55,7 @@ java -jar socks5-1.1.0.jar
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
+            <pattern>%d [%t] %-5p %c{36}.%M - %m%n</pattern>
         </encoder>
     </appender>
     <root level="off">  // 日志级别默认 off 关闭，可选 trace、debug、info、warn、error、all、off。
@@ -64,5 +73,5 @@ mvn clean package -DskipTests
 ### 运行
 
 ```shell
-java -jar target/socks5-1.1.0.jar
+java -jar target/socks5-1.1.1.jar
 ```

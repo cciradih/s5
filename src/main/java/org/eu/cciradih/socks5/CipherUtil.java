@@ -1,54 +1,36 @@
 package org.eu.cciradih.socks5;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.SecureRandom;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class CipherUtil {
-    private volatile static CipherUtil instance;
-    private static final ReentrantLock REENTRANT_LOCK = new ReentrantLock();
-    private static SecretKeySpec secretKeySpec;
-    private static IvParameterSpec ivParameterSpec;
-    private static Cipher cipher;
+    private static final Logger LOGGER = LoggerFactory.getLogger(CipherUtil.class);
+    private static final CacheUtil CACHE_UTIL = CacheUtil.getCacheUtil();
 
     private CipherUtil() {
     }
 
+    private static class CipherUtilHolder {
+        private static final CipherUtil INSTANCE = new CipherUtil();
+    }
+
     public static CipherUtil getInstance() {
-        if (instance == null) {
-            boolean held = REENTRANT_LOCK.tryLock();
-            if (held) {
-                try {
-                    if (instance == null) {
-                        instance = new CipherUtil();
-
-                        SecureRandom secureRandom = new SecureRandom();
-                        byte[] key = new byte[32];
-                        secureRandom.nextBytes(key);
-                        byte[] iv = new byte[16];
-                        secureRandom.nextBytes(iv);
-
-                        secretKeySpec = new SecretKeySpec(key, "AES");
-                        ivParameterSpec = new IvParameterSpec(iv);
-                        cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                    }
-                } catch (Exception ignored) {
-                } finally {
-                    REENTRANT_LOCK.unlock();
-                }
-
-            }
-        }
-        return instance;
+        return CipherUtilHolder.INSTANCE;
     }
 
     public byte[] doFinal(byte[] bytes, int mode) {
         try {
+            Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
+            SecretKeySpec secretKeySpec = (SecretKeySpec) CACHE_UTIL.get("key");
+            IvParameterSpec ivParameterSpec = (IvParameterSpec) CACHE_UTIL.get("iv");
             cipher.init(mode, secretKeySpec, ivParameterSpec);
             return cipher.doFinal(bytes);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            LOGGER.error("{} {}", e, bytes);
             return new byte[0];
         }
     }

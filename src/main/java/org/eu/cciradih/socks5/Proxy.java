@@ -39,20 +39,24 @@ public class Proxy {
         return server;
     }
 
-    public void readAndWrite(Socket source, Socket target, int mode) throws IOException {
+    public byte[] read(Socket source) throws IOException {
         byte[] buffer = new byte[8192];
         int read = source.getInputStream().read(buffer);
-        buffer = Arrays.copyOfRange(buffer, 0, read);
-        CipherUtil.getInstance().doFinal(buffer, mode);
+        return Arrays.copyOfRange(buffer, 0, read);
+    }
+
+    public byte[] read(Socket source, int mode) throws Exception {
+        byte[] read = this.read(source);
+        return CipherUtil.getInstance().doFinal(read, mode);
+    }
+
+    public void write(Socket target, byte[] buffer) throws IOException {
         target.getOutputStream().write(buffer);
     }
 
-    public byte[] readAndWrite(Socket source, Socket target, int mode, byte[] bytes) throws IOException {
-        byte[] buffer = new byte[8192];
-        int read = source.getInputStream().read(buffer);
-        CipherUtil.getInstance().doFinal(buffer, mode);
-        target.getOutputStream().write(bytes);
-        return Arrays.copyOfRange(buffer, 0, read);
+    public void write(Socket target, byte[] buffer, int mode) throws Exception {
+        buffer = CipherUtil.getInstance().doFinal(buffer, mode);
+        this.write(target, buffer);
     }
 
     public void copy(Socket source, Socket target, int mode) {
@@ -63,22 +67,13 @@ public class Proxy {
                 int read;
                 byte[] buffer = new byte[8192];
                 while (-1 != (read = inputStream.read(buffer))) {
-                    CipherUtil.getInstance().doFinal(buffer, mode);
-                    outputStream.write(buffer, 0, read);
+                    buffer = Arrays.copyOfRange(buffer, 0, read);
+                    byte[] bytes = CipherUtil.getInstance().doFinal(buffer, mode);
+                    outputStream.write(bytes);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOGGER.error("{} -> {} - {}", source, target, e.getMessage());
-            } finally {
-                this.close(source, target);
             }
         });
-    }
-
-    private void close(Socket source, Socket target) {
-        try {
-            source.close();
-            target.close();
-        } catch (IOException ignored) {
-        }
     }
 }
