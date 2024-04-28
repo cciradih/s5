@@ -1,13 +1,11 @@
 {
   "proxyClient": {
     "address": "0.0.0.0",
-    "port": 25700,
-    "timeout": 30000
+    "port": 25700
   },
   "proxyServer": {
     "address": "0.0.0.0",
-    "port": 25701,
-    "timeout": 30000
+    "port": 25701
   },
   "aes": {
     "key": "0FgHbSzNxELznurbWklPMz+owP82snvmZcVFl8O5ils=",

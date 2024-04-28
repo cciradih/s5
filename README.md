@@ -5,7 +5,7 @@ Socks 5 代理。
 ## 功能
 
 - [x] Socks 5 协议。
-- [x] AES-CTR 传输加密。
+- [x] 64-AES-CTR 加密协议。
 
 ## 效果
 
@@ -15,12 +15,27 @@ Socks 5 代理。
 
 ![](https://github.com/cciradih/s5/blob/master/model.jpg)
 
+## 64-AES-CTR 加密协议
+
+```
++-------------+--------+----------------+
+| MAGIC ASCII | LENGTH | DATA (AES-CTR) |
++-------------+--------+----------------+
+| 6           | 4      | variable       |
++-------------+--------+----------------+
+```
+
+* MAGIC ASCII: 6 random ascii between 0x20 and 0x7E
+* LENGTH: data length
+* DATA: data to be transferred
+
 ## 使用
 
-JDK 21 环境开箱即用（Out of the box），代码很简单，没有过度封装。
-
 ```shell
-java -jar socks5-1.1.1.jar
+# jar
+java -jar s5-1.2.0.jar
+# 可执行文件
+./s5
 ```
 
 ### Proxy 配置
@@ -28,50 +43,58 @@ java -jar socks5-1.1.1.jar
 > [!NOTE]
 > AES 密钥和偏移量生成可以参考 `src/test/java/org/eu/cciradih/socks5/MainTests.java`。
 
+文件位置 `src/main/resources/configuration.json`
+
 ```json
 {
   "proxyClient": {        //  代理客户端
     "address": "0.0.0.0", //  监听地址
-    "port": 25700,        //  监听端口
-    "timeout": 30000      //  连接代理服务器的 soTimeout 和 connectTimeout 的超时时间（ms）
+    "port": 25700         //  监听端口
   },
   "proxyServer": {        //  代理服务器
     "address": "0.0.0.0", //  监听地址
-    "port": 25701,        //  监听端口
-    "timeout": 30000      //  连接远程服务器的 soTimeout 和 connectTimeout 的超时时间（ms）
+    "port": 25701         //  监听端口
   },
   "aes": {
-    "key": "……",  //  密钥
-    "iv": "……"    //  偏移量
+    "key": "...",         //  密钥
+    "iv": "..."           //  偏移量
   }
 }
 ```
 
 ### 日志配置
 
-文件位置 `src/main/resources/logback.xml`
+文件位置 `src/main/resources/vertx-default-jul-logging.properties`
 
-```xml
-<configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d [%t] %-5p %c{36}.%M - %m%n</pattern>
-        </encoder>
-    </appender>
-    <root level="off">  // 日志级别默认 off 关闭，可选 trace、debug、info、warn、error、all、off。
-        <appender-ref ref="STDOUT"/>
-    </root>
-</configuration>
+```properties
+handlers=java.util.logging.ConsoleHandler
+#   全局日志级别
+java.util.logging.ConsoleHandler.level=INFO
+#   包日志级别
+org.eu.cciradih.s5.level=FINEST
+java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
+java.util.logging.SimpleFormatter.format=%1$tc %4$s --- %2$s: %5$s%6$s%n
 ```
 
 ### 构建
 
 ```shell
-mvn clean package -DskipTests
+# 使用 shade 构建 jar
+mvn clean package -P shade -DskipTests
+# 使用 GraalVN 构建可执行文件
+
+# 运行时做类似于覆盖率测试的行为以便 agent 能够找到所有反射类。
+# 然后停止运行后将生成的 JSON 文件覆盖 src/main/resources/META-INF/native-image/org.eu.cciradih/s5 目录下的 JSON 文件。
+mkdir META-INF
+java -agentlib:native-image-agent=config-output-dir=./META-INF -jar ./target/s5-1.2.0.jar
+mvn clean package -P graalvm -DskipTests
 ```
 
 ### 运行
 
 ```shell
-java -jar target/socks5-1.1.1.jar
+# jar
+java -jar ./target/s5-1.2.0.jar
+# 可执行文件
+./target/s5
 ```

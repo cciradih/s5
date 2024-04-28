@@ -1,7 +1,7 @@
-package org.eu.cciradih.socks5;
+package org.eu.cciradih.s5;
 
 public record Configuration(Proxy proxyClient, Proxy proxyServer, Aes aes) {
-    public record Proxy(String address, int port, int timeout, String key) {
+    public record Proxy(String address, int port, String key) {
     }
 
     public record Aes(String key, String iv) {

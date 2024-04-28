@@ -1,8 +1,8 @@
-package org.eu.cciradih.socks5;
+package org.eu.cciradih.s5;
 
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -19,7 +19,7 @@ class MainTests {
     }
 
     private byte[] generateBytes(int length) throws Exception {
-        SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
+        SecureRandom secureRandom = SecureRandom.getInstance(ProtocolUtil.ALGORITHM);
         byte[] bytes = new byte[length];
         secureRandom.nextBytes(bytes);
         return bytes;
