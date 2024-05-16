@@ -1,10 +1,10 @@
-# S5（Socks 5）
+# S5（Socks5）
 
-Socks 5 代理。
+Socks5 代理。
 
 ## 功能
 
-- [x] Socks 5 协议。
+- [x] Socks5 协议。
 - [x] 64-AES-CTR 加密协议。
 
 ## 效果
